@@ -38,7 +38,23 @@ export const findTitle = (ast: MarkdownNode): string | null => {
   if (!ast.children) {
     return null;
   }
+  
+  // Prefer to find the title field in front-matter (yaml)
+  for (const child of ast.children) {
+    if (child.type === "yaml" && child.value) {
+      const match = child.value.match(/^title:\s*(.+)$/m);
+      if (match && match[1]) {
+        let title = match[1].trim().replace(/^['"]|['"]$/g, "");
+        const titleMaxLength = getTitleMaxLength();
+        if (titleMaxLength > 0 && title.length > titleMaxLength) {
+          title = title.substr(0, titleMaxLength).concat("...");
+        }
+        return title;
+      }
+    }
+  }
 
+  // If no front-matter title, fallback to first-level heading
   for (const child of ast.children) {
     if (
       child.type === "heading" &&
