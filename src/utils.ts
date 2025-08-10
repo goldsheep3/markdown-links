@@ -42,7 +42,7 @@ export const findTitle = (ast: MarkdownNode): string | null => {
   // Prefer to find the title field in front-matter (yaml)
   for (const child of ast.children) {
     if (child.type === "yaml" && child.value) {
-      const match = child.value.match(/^title:\s*(.+)$/m);
+      const match = child.value.match(/^title:\s*(.+)$/im);
       if (match && match[1]) {
         let title = match[1].trim().replace(/^['"]|['"]$/g, "");
         const titleMaxLength = getTitleMaxLength();
