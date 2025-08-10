@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as md5 from "md5";
 import { extname } from "path";
+import * as nodePath from "path";
 import { MarkdownNode, Graph } from "./types";
 
 export const findLinks = (ast: MarkdownNode): string[] => {
@@ -46,7 +47,7 @@ export const findTitle = (ast: MarkdownNode): string | null => {
       child.children &&
       child.children.length > 0
     ) {
-      let title = child.children[0].value!
+      let title = child.children[0].value!;
 
       const titleMaxLength = getTitleMaxLength();
       if (titleMaxLength > 0 && title.length > titleMaxLength) {
@@ -60,8 +61,10 @@ export const findTitle = (ast: MarkdownNode): string | null => {
 };
 
 export const id = (path: string): string => {
+  // Unify path separators, remove extensions
+  const normalized = nodePath.normalize(path).replace(/[/\\]+/g, nodePath.sep);
   // Extracting file name without extension.
-  return md5(path.substring(0, path.length - extname(path).length));
+  return md5(normalized.substring(0, normalized.length - extname(normalized).length));
 };
 
 export const getConfiguration = (key: string) =>
@@ -83,7 +86,7 @@ const settingToValue: { [key: string]: vscode.ViewColumn | undefined } = {
 
 export const getTitleMaxLength = () => {
   return getConfiguration("titleMaxLength");
-}
+};
 
 export const getColumnSetting = (key: string) => {
   const column = getConfiguration(key);
@@ -112,7 +115,7 @@ export const getDot = (graph: Graph) => `digraph g {
     .map((node) => `  ${node.id} [label="${node.label}"];`)
     .join("\n")}
   ${graph.edges.map((edge) => `  ${edge.source} -> ${edge.target}`).join("\n")}
-  }`;
+}`;
 
 export const exists = (graph: Graph, id: string) =>
   !!graph.nodes.find((node) => node.id === id);

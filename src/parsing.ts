@@ -65,9 +65,21 @@ export const parseFile = async (graph: Graph, filePath: string) => {
   const parentDirectory = filePath.split(path.sep).slice(0, -1).join(path.sep);
 
   for (const link of links) {
-    let target = path.normalize(link);
-    if (!path.isAbsolute(link)) {
+    let target: string;
+    let root = vscode.workspace.rootPath || "";
+    if (link.startsWith("/")) {
+      // If starts with '/', treat as path relative to workspace root
+      target = path.normalize(path.join(root, link));
+      // On Windows, force a leading backslash for consistency
+      if (process.platform === "win32" && !target.startsWith("\\")) {
+        target = "\\" + target;
+      }
+    } else if (!path.isAbsolute(link)) {
+      // Relative path, based on current file's directory
       target = path.normalize(`${parentDirectory}/${link}`);
+    } else {
+      // Absolute path (disk path)
+      target = path.normalize(link);
     }
 
     graph.edges.push({ source: id(filePath), target: id(target) });
